@@ -92,28 +92,10 @@ public class Planet : MonoBehaviour
         }
     }
 
-    /*public static Mesh BuildMeshFromFilters( string name, params UnityEngine.Mesh[] baseMeshs)
-    {
-        LinkedList<Facet> facets = new LinkedList<Facet>();
 
-        
-        foreach (var mesh in baseMeshs)
-        {
-            Vector3 normal = (mesh.normals[mesh.triangles[i]] +
-                                     mesh.normals[mesh.triangles[i + 1]] +
-                                     mesh.normals[mesh.triangles[i + 2]]) / 3.0f;
-            var oneMesh = mesh.Mesh;
-            for (int i = 0; i < mesh.triangles.Length; i += 3)
-            {
-                Vector3 v1 = mesh.vertices[mesh.triangles[i]] + container.Translation;
-                //Vertex v2 = 
-            }
-        }
-        return new Mesh(name, facets);
-    }*/
 
     /// <summary>
-    /// Export the planet mesh for SU2
+    /// Export the planet mesh to a wavefront file
     /// </summary>
     public void ExportPlanetMesh()
     {

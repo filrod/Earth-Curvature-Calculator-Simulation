@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Planet
   - Stick 1
+  - Stick 2
   layers:
   - Default
   - TransparentFX
