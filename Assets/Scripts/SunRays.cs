@@ -4,22 +4,26 @@ using UnityEngine;
 
 public class SunRays : MonoBehaviour
 {
+
     [HideInInspector] public Vector3 meanPositionOfStickTops = Vector3.zero;
 
     private RaycastHit rayHit;
     private Light sunRay;
     private bool hit;
+    public string[] dataCSV = new string[15];
 
     //[SerializeField] private Planet Earth;
     [SerializeField] private Vector3 lightOrigin = new Vector3(0f, 260.3f, -14.2f);
-    [SerializeField] Vector3[] deltas;
+    public Vector3 LightOrigin { get { return this.lightOrigin; } set { this.lightOrigin = new Vector3(value.x, value.y, value.z); } }
+    [SerializeField] private Vector3[] deltas;
+    public Vector3[] Deltas { get{ return this.deltas; } set { this.deltas = value; } }
     [SerializeField] private float maxRayLength = 100f;
     [SerializeField] private bool drawRays = true;
     [SerializeField] private bool drawHitPoints = true;
-    [SerializeField] private GameObject[] sticks;
+    [SerializeField] public GameObject[] sticks;
 
-    // Start is called before the first frame update
-    void Start()
+    
+    void Awake()
     {
         sunRay = GetComponent<Light>();
         var stickScripts = FindObjectsOfType<StickPlacement>();
@@ -60,6 +64,12 @@ public class SunRays : MonoBehaviour
     /// </summary>
     private void CastRays()
     {
+        // Write first 2 entries to the CSV Array
+        dataCSV[0] = FindObjectOfType<Planet>().gameObject.transform.rotation.ToString();
+        dataCSV[1] = this.lightOrigin.ToString();
+
+        bool[] allHitPlanet = { false, false, false };
+
         int i = 0;
         foreach (GameObject stick in this.sticks)
         {
@@ -89,6 +99,32 @@ public class SunRays : MonoBehaviour
                     Debug.DrawLine(rayOrigin + deltas[i], rayHit.point, Color.green, 0.05f, true);
                     DrawHitPoints(this.drawHitPoints, 0.2f * stick.transform.localScale.x);
                     Debug.Log("Hit recorded! Has hit " + rayHit.collider.gameObject.tag + ". Coords: " + rayHit.point.ToString());
+
+                    // set the allHitPlanet variable bool
+                    allHitPlanet[i] = rayHit.collider.gameObject.CompareTag("Planet");
+
+                    // Write data to CSV array
+                    int i_columnStart;
+                    if (stick.name == "Stick 1")
+                        i_columnStart = 3;
+                    else if (stick.name == "Stick 2")
+                        i_columnStart = 7;
+                    else if (stick.name == "Stick 3")
+                        i_columnStart = 11;
+                    else
+                    {
+                        i_columnStart = -1;
+                        Debug.LogError("Error: Unexpected name of " + stick.gameObject.name + " in writing csv. Make sure the tag names for the sticks are Stick 1, Stick 2 and Stick 3");
+                    }
+
+                    // World Space Stick Position
+                    dataCSV[i_columnStart] = stick.gameObject.transform.position.ToString();
+                    // Shadow position
+                    dataCSV[i_columnStart + 1] = rayHit.point.ToString();
+                    // Stick height
+                    dataCSV[i_columnStart + 2] = stickTop.ToString();
+                    // Ray start position
+                    dataCSV[i_columnStart + 3] = (rayOrigin + deltas[i]).ToString();
                 }
                 else
                 { 
@@ -97,6 +133,20 @@ public class SunRays : MonoBehaviour
             }
             i++;
         }
+
+        // Make sure no data is false or null
+        foreach (bool hitPlanet in allHitPlanet)
+        {
+            if (!hitPlanet) return;
+        }
+        // If you made it here save data
+        SaveToCSV();
+    }
+
+    public void SaveToCSV()
+    {
+        string line = string.Join(";", dataCSV);
+        System.IO.File.AppendAllText(@".\Exports\Curvature Data\ShadowHitsAndAllPositions.csv", System.Environment.NewLine+line);
     }
 
     /// <summary>

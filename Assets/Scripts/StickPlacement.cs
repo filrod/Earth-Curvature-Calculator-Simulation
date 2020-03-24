@@ -8,20 +8,22 @@ public class StickPlacement : MonoBehaviour
     public ShapeSettings planetShapeSettings;
 
     [SerializeField] [Tooltip("Adjust lattitude of stick ")]
-    [Range(-90f, 90f)] private float lattitude=90f;
+    [Range(-90f, 90f)] public float lattitude=90f;
 
     [SerializeField] [Tooltip("Adjust longitude of stick ")]
-    [Range(-180f, 180f)] private float longitude=0f;
+    [Range(-180f, 180f)] public float longitude=0f;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        ///Debug.LogWarning(this.GetComponentInParent<Planet>().gameObject.transform.rotation);///
+
         Vector3 dir = new Vector3(
             Cos(lattitude) * Sin(longitude),
             Sin(lattitude),
@@ -35,6 +37,7 @@ public class StickPlacement : MonoBehaviour
             if (rayCastHitPlanetMesh.collider.gameObject.CompareTag("Planet"))
             {
                 this.transform.position = rayCastHitPlanetMesh.point - Vector3.zero;
+                ///transform.rotation = this.GetComponentInParent<Planet>().gameObject.transform.rotation;///
                 transform.rotation = Quaternion.LookRotation(dir);
                 transform.Rotate(new Vector3(90f, 0f, 0f));
                 //Debug.Log("Hit planet at " + rayCastHitPlanetMesh.point.ToString());
