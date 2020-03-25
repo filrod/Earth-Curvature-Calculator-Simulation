@@ -7,6 +7,7 @@ public class CanvasControlls : MonoBehaviour
 {
     [SerializeField] private GameObject planet;
     [SerializeField] private GameObject sun;
+    [SerializeField] private GameObject plane;
     private GameObject[] sticks;
 
     private SunRays sunRaysScript;
@@ -17,6 +18,7 @@ public class CanvasControlls : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        plane.SetActive(false);
         Debug.Log("Sun: "+sun.gameObject.name);
         sunRaysScript = sun.GetComponent<SunRays>();
         Debug.Log("Sun Rays Script: " + sunRaysScript.LightOrigin.ToString());
@@ -110,7 +112,7 @@ public class CanvasControlls : MonoBehaviour
     public void XSliderUpdate(float angleAroundXAxis)
     {
         Debug.Log("Slider: "+angleAroundXAxis);
-        this.PlanetRotationSliders.Set(
+        this.PlanetRotationSliders = new Vector3(
             angleAroundXAxis,
             this.PlanetRotationSliders.y,
             this.PlanetRotationSliders.z
@@ -125,7 +127,7 @@ public class CanvasControlls : MonoBehaviour
 
     public void YSliderUpdate(float angleAroundYAxis)
     {
-        this.PlanetRotationSliders.Set(
+        this.PlanetRotationSliders = new Vector3(
             this.PlanetRotationSliders.x,
             angleAroundYAxis,
             this.PlanetRotationSliders.z
@@ -140,7 +142,7 @@ public class CanvasControlls : MonoBehaviour
 
     public void ZSliderUpdate(float angleAroundZAxis)
     {
-        this.PlanetRotationSliders.Set(
+        this.PlanetRotationSliders = new Vector3(
             this.PlanetRotationSliders.x,
             this.PlanetRotationSliders.y,
             angleAroundZAxis
@@ -151,5 +153,47 @@ public class CanvasControlls : MonoBehaviour
             this.PlanetRotationSliders.y,
             angleAroundZAxis
             );
+    }
+
+    public void SaveData(bool isToggled)
+    {
+        sunRaysScript.saveData = isToggled;
+    }
+
+    public void EnableFlatEarth(bool isToggled)
+    {
+        if (isToggled)
+        {
+            plane.SetActive(true);
+            planet.SetActive(false);
+            foreach (var script in this.stickPlacement)
+            {
+                if (script.enabled)
+                    script.enabled = false;
+            }
+
+
+            Vector3 avStickPos = Vector3.zero;
+            foreach (var stick in sticks)
+            {
+                avStickPos += stick.transform.position;
+            }
+            avStickPos = 1f / sticks.Length * avStickPos;
+            plane.transform.position = avStickPos;
+
+            
+        }
+        else {
+            plane.SetActive(false);
+            planet.SetActive(true);
+            foreach (var script in this.stickPlacement)
+            {
+                if (!script.enabled)
+                    script.enabled = true;
+            }
+            
+            return;
+        }
+        
     }
 }

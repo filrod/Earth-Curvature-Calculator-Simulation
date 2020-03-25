@@ -29,6 +29,7 @@ public class StickPlacement : MonoBehaviour
             Sin(lattitude),
             Cos(lattitude) * Cos(longitude)
             );
+        dir = FindObjectOfType<Planet>().gameObject.transform.rotation * dir;
         RaycastHit rayCastHitPlanetMesh;
         bool hit = false;
         hit = Physics.Raycast((250f*1.5f)*dir, -dir, out rayCastHitPlanetMesh, 250f * 3f);

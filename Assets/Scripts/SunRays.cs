@@ -10,7 +10,8 @@ public class SunRays : MonoBehaviour
     private RaycastHit rayHit;
     private Light sunRay;
     private bool hit;
-    public string[] dataCSV = new string[15];
+    public bool saveData = false;
+    public string[] dataCSV = new string[16];
 
     //[SerializeField] private Planet Earth;
     [SerializeField] private Vector3 lightOrigin = new Vector3(0f, 260.3f, -14.2f);
@@ -65,7 +66,17 @@ public class SunRays : MonoBehaviour
     private void CastRays()
     {
         // Write first 2 entries to the CSV Array
-        dataCSV[0] = FindObjectOfType<Planet>().gameObject.transform.rotation.ToString();
+        if (FindObjectOfType<Planet>() != null)
+        {
+            dataCSV[0] = FindObjectOfType<Planet>().gameObject.transform.rotation.ToString();
+            dataCSV[dataCSV.Length-1] = "Round Planet Model";
+        }
+        else
+        {
+            dataCSV[0] = FindObjectOfType<FlatEarth>().gameObject.transform.rotation.ToString();
+            dataCSV[dataCSV.Length - 1] = "Flat Earth Model";
+        }
+
         dataCSV[1] = this.lightOrigin.ToString();
 
         bool[] allHitPlanet = { false, false, false };
@@ -87,16 +98,16 @@ public class SunRays : MonoBehaviour
             {
                 maxRayLength = minLengthNeeded + 3f;
             }
-
+            rayOrigin += deltas[i];
             // Cast a ray that shoots just above the tip of the stick
-            hit = Physics.Raycast(rayOrigin + deltas[i], sunRay.transform.rotation * Vector3.forward, out rayHit, maxRayLength);
+            hit = Physics.Raycast(rayOrigin, sunRay.transform.rotation * Vector3.forward, out rayHit, maxRayLength);
 
             // If user wishes to draw the rays
             if (this.drawRays)
             {
                 if (hit)
                 {
-                    Debug.DrawLine(rayOrigin + deltas[i], rayHit.point, Color.green, 0.05f, true);
+                    Debug.DrawLine(rayOrigin, rayHit.point, Color.green, 0.05f, true);
                     DrawHitPoints(this.drawHitPoints, 0.2f * stick.transform.localScale.x);
                     Debug.Log("Hit recorded! Has hit " + rayHit.collider.gameObject.tag + ". Coords: " + rayHit.point.ToString());
 
@@ -124,11 +135,11 @@ public class SunRays : MonoBehaviour
                     // Stick height
                     dataCSV[i_columnStart + 2] = stickTop.ToString();
                     // Ray start position
-                    dataCSV[i_columnStart + 3] = (rayOrigin + deltas[i]).ToString();
+                    dataCSV[i_columnStart + 3] = rayOrigin.ToString();
                 }
                 else
                 { 
-                    Debug.DrawLine(rayOrigin + deltas[i], rayOrigin + deltas[i] + this.maxRayLength * (sunRay.transform.rotation * Vector3.forward), Color.red, 0.05f, true);
+                    Debug.DrawLine(rayOrigin, rayOrigin + this.maxRayLength * (sunRay.transform.rotation * Vector3.forward), Color.red, 0.05f, true);
                 }
             }
             i++;
@@ -145,8 +156,10 @@ public class SunRays : MonoBehaviour
 
     public void SaveToCSV()
     {
+        if (!this.saveData) return;
+
         string line = string.Join(";", dataCSV);
-        System.IO.File.AppendAllText(@".\Exports\Curvature Data\ShadowHitsAndAllPositions.csv", System.Environment.NewLine+line);
+        System.IO.File.AppendAllText(@".\Exports\Curvature Data\ShadowHitsAndAllPositions.csv", line+System.Environment.NewLine);
     }
 
     /// <summary>
