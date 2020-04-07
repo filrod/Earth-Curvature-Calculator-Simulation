@@ -4,7 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Round-Model.unity
+    guid: b691ee7aed21456419fadc37bb055882
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 81f7b912ac629fb45a8c19ca15e8c024,
       type: 2}

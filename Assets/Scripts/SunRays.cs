@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ public class SunRays : MonoBehaviour
     private Light sunRay;
     private bool hit;
     public bool saveData = false;
-    public string[] dataCSV = new string[16];
+    public string[] dataCSV;
 
     //[SerializeField] private Planet Earth;
     [SerializeField] private Vector3 lightOrigin = new Vector3(0f, 260.3f, -14.2f);
@@ -22,10 +23,12 @@ public class SunRays : MonoBehaviour
     [SerializeField] private bool drawRays = true;
     [SerializeField] private bool drawHitPoints = true;
     [SerializeField] public GameObject[] sticks;
+    [SerializeField] private bool isCenteredOnSticks = false;
 
     
     void Awake()
     {
+        dataCSV = new string[16];
         sunRay = GetComponent<Light>();
         var stickScripts = FindObjectsOfType<StickPlacement>();
         sticks = new GameObject[stickScripts.Length];
@@ -43,12 +46,19 @@ public class SunRays : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        SunViewingDir();
+        if (isCenteredOnSticks)
+            SunViewingDir();
         CastRays();
     }
 
     void SunViewingDir()
+    {
+        SetMeanPositionOfStickTops();
+
+        sunRay.transform.SetPositionAndRotation(this.lightOrigin, Quaternion.LookRotation(meanPositionOfStickTops - lightOrigin));
+    }
+
+    private void SetMeanPositionOfStickTops()
     {
         meanPositionOfStickTops = Vector3.zero;
         foreach (GameObject stick in this.sticks)
@@ -56,9 +66,10 @@ public class SunRays : MonoBehaviour
             meanPositionOfStickTops += stick.transform.position + stick.GetComponent<Collider>().bounds.extents.y * Vector3.up;
         }
         meanPositionOfStickTops /= sticks.Length;
-
-        sunRay.transform.SetPositionAndRotation(this.lightOrigin, Quaternion.LookRotation(meanPositionOfStickTops - lightOrigin));
     }
+
+    public Vector3 GetMeanPositionOfStickTops()
+    { return this.meanPositionOfStickTops; }
 
     /// <summary>
     /// Cast sunrays to measure shadow lengths for each shadow cast by a stick
@@ -68,13 +79,13 @@ public class SunRays : MonoBehaviour
         // Write first 2 entries to the CSV Array
         if (FindObjectOfType<Planet>() != null)
         {
-            dataCSV[0] = FindObjectOfType<Planet>().gameObject.transform.rotation.ToString();
-            dataCSV[dataCSV.Length-1] = "Round Planet Model";
+            dataCSV[0] = FindObjectOfType<Planet>().gameObject.transform.rotation.eulerAngles.ToString();
+            dataCSV[15] = "Round Planet Model";
         }
         else
         {
-            dataCSV[0] = FindObjectOfType<FlatEarth>().gameObject.transform.rotation.ToString();
-            dataCSV[dataCSV.Length - 1] = "Flat Earth Model";
+            dataCSV[0] = FindObjectOfType<FlatEarth>().gameObject.transform.rotation.eulerAngles.ToString();
+            dataCSV[15] = "Flat Earth Model";
         }
 
         dataCSV[1] = this.lightOrigin.ToString();
@@ -101,6 +112,22 @@ public class SunRays : MonoBehaviour
             rayOrigin += deltas[i];
             // Cast a ray that shoots just above the tip of the stick
             hit = Physics.Raycast(rayOrigin, sunRay.transform.rotation * Vector3.forward, out rayHit, maxRayLength);
+            if (hit) {
+                int ihits = 0;
+                Debug.Log("Tag: "+ rayHit.collider.gameObject.name);
+                while (hit && rayHit.collider.gameObject.tag != "Planet" && ihits < 200)
+                {
+                    rayOrigin += 0.1f*Vector3.up;
+                    deltas[i] += 0.1f * Vector3.up;
+                    hit = Physics.Raycast(rayOrigin, sunRay.transform.rotation * Vector3.forward, out rayHit, maxRayLength);
+                    ihits++;
+                }
+            }
+
+            // Record ray direction in csv
+            Vector3 sunRayDir = sunRay.transform.rotation * Vector3.forward;
+            sunRayDir.Normalize();
+            dataCSV[2] = sunRayDir.ToString();
 
             // If user wishes to draw the rays
             if (this.drawRays)
@@ -150,6 +177,7 @@ public class SunRays : MonoBehaviour
         {
             if (!hitPlanet) return;
         }
+        Debug.Log(string.Join(";", dataCSV));
         // If you made it here save data
         SaveToCSV();
     }
